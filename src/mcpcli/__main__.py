@@ -26,6 +26,8 @@ from mcpcli.messages.send_call_tool import send_call_tool
 from mcpcli.messages.send_tools_list import send_tools_list
 from mcpcli.transport.stdio.stdio_client import stdio_client
 
+from mcpcli.discord_bot.bot import start_bot
+
 # Default path for the configuration file
 DEFAULT_CONFIG_FILE = "server_config.json"
 
@@ -355,6 +357,18 @@ def cli_main():
         help="Base URL for the OpenAI API (only used with OpenAI provider)",
     )
 
+    parser.add_argument(
+        "--bot",
+        action="store_true",
+        help="Run as a Discord bot",
+    )
+    
+    parser.add_argument(
+        "--bot-config",
+        default="bot_config.json",
+        help="Path to the Discord bot configuration file",
+    )
+
     args = parser.parse_args()
 
     # Set default model based on provider
@@ -369,8 +383,32 @@ def cli_main():
         os.environ["OPENAI_BASE_URL"] = args.base_url
 
     try:
-        result = anyio.run(run, args.config_file, args.servers, args.command)
-        sys.exit(result)
+        if args.bot:
+            # For Discord bot, we need to use asyncio directly
+            import asyncio
+            
+            # Configure logging for discord.py
+            import logging
+            logging.basicConfig(level=logging.INFO)
+            
+            try:
+                # Run the bot using asyncio
+                asyncio.run(
+                    start_bot(
+                        args.config_file,
+                        args.servers or ["sqlite"],  # Default to sqlite if no server specified
+                        args.bot_config
+                    )
+                )
+            except KeyboardInterrupt:
+                print("\n[bold red]Bot shutdown requested. Goodbye![/bold red]")
+            except Exception as e:
+                print(f"[red]Bot error:[/red] {str(e)}")
+                sys.exit(1)
+        else:
+            # Regular CLI mode
+            result = anyio.run(run, args.config_file, args.servers, args.command)
+            sys.exit(result)
     except Exception as e:
         print(f"[red]Error occurred:[/red] {e}")
         sys.exit(1)

@@ -20,6 +20,7 @@ dependencies = [
     "requests>=2.32.3",
     "rich>=13.9.4",
     "anthropic>=0.19.2",
+    "discord-py>=2.4.0",
 ]
 [project.scripts]
 mcp-cli = "mcpcli.__main__:cli_main"

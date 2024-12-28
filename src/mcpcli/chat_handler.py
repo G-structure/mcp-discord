@@ -10,6 +10,54 @@ from mcpcli.llm_client import LLMClient
 from mcpcli.system_prompt_generator import SystemPromptGenerator
 from mcpcli.tools_handler import convert_to_openai_tools, fetch_tools, handle_tool_call
 
+async def handle_discord_chat(server_streams, provider, model, conversation_history):
+    """Discord-specific version of chat mode handler."""
+    try:
+        print("[blue]Fetching available tools...[/blue]")
+        # Fetch available tools
+        tools = []
+        for read_stream, write_stream in server_streams:
+            tools.extend(await fetch_tools(read_stream, write_stream))
+
+        if not tools:
+            print("[red]No tools available. Cannot process request.[/red]")
+            return "No tools available. Cannot process request."
+
+        print("[blue]Generating system prompt and converting tools...[/blue]")
+        # Generate system prompt and convert tools
+        system_prompt = generate_system_prompt(tools)
+        openai_tools = convert_to_openai_tools(tools)
+        
+        print("[blue]Initializing LLM client...[/blue]")
+        # Initialize LLM client
+        client = LLMClient(provider=provider, model=model)
+        
+        # Ensure system prompt is in history if not already
+        if not conversation_history or conversation_history[0].get("role") != "system":
+            print("[blue]Inserting system prompt into conversation history...[/blue]")
+            conversation_history.insert(0, {"role": "system", "content": system_prompt})
+
+        print("[blue]Processing the conversation...[/blue]")
+        # Process the conversation once
+        await process_conversation(client, conversation_history, openai_tools, server_streams)
+        
+        # Extract the last assistant message
+        print("[blue]Extracting the last assistant message...[/blue]")
+        for message in reversed(conversation_history):
+            if message["role"] == "assistant" and message.get("content"):
+                print("[green]Response generated successfully.[/green]")
+                return message["content"]
+        
+        print("[red]No response generated.[/red]")
+        return "No response generated."
+
+    except Exception as e:
+        error_message = f"Error processing request: {str(e)}"
+        print(f"[red]{error_message}[/red]")
+        return error_message
+
+    except Exception as e:
+        return f"Error processing request: {str(e)}"
 
 async def handle_chat_mode(server_streams, provider="openai", model="gpt-4o-mini"):
     """Enter chat mode with multi-call support for autonomous tool chaining."""

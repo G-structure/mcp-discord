@@ -1,0 +1,13 @@
+{
+    "token": "",
+    "command_prefix": "!",
+    "allowed_channels": [
+        {
+            "id": 123456789,
+            "allowed_roles": ["ChatUser"],
+            "allowed_users": []
+        }
+    ],
+    "default_provider": "openai",
+    "default_model": "gpt-4o-mini"
+}

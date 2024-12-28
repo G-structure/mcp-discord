@@ -95,6 +95,11 @@ In chat mode, you can use tools and query the server interactively. The provider
 
 Entering chat mode using provider 'ollama' and model 'llama3.2'...
 
+### Discord bot
+```
+uv run mcp-cli --server sqlite --provider anthropic --model claude-3-5-sonnet-latest --bot --bot-config bot_config.json
+```
+
 #### Using OpenAI Provider:
 If you wish to use openai models, you should
 
