@@ -350,6 +350,11 @@ def cli_main():
         help=("Model to use. Defaults to 'gpt-4o-mini' for openai, 'claude-3-5-haiku-latest' for anthropic and 'qwen2.5-coder' for ollama"),
     )
 
+    parser.add_argument(
+        "--base-url",
+        help="Base URL for the OpenAI API (only used with OpenAI provider)",
+    )
+
     args = parser.parse_args()
 
     # Set default model based on provider
@@ -360,6 +365,8 @@ def cli_main():
     )
     os.environ["LLM_PROVIDER"] = args.provider
     os.environ["LLM_MODEL"] = model
+    if args.base_url:
+        os.environ["OPENAI_BASE_URL"] = args.base_url
 
     try:
         result = anyio.run(run, args.config_file, args.servers, args.command)

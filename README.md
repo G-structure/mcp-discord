@@ -62,6 +62,17 @@ Run the client with a specific configuration and Ollama provider:
 uv run mcp-cli --server sqlite --provider ollama --model llama3.2
 ```
 
+Run the client with a specific configuration and openrouter.
+```bash
+uv run mcp-cli --server sqlite --provider openai --base-url https://openrouter.ai/api/v1 --model openai/o1-mini
+```
+
+Can change openai base url with env.
+```bash
+export OPENAI_BASE_URL=https://openrouter.ai/api/v1
+uv run mcp-cli --server sqlite --provider openai --model openai/o1-mini
+```
+
 ## Interactive Mode
 The client supports interactive mode, allowing you to execute commands dynamically. Type `help` for a list of available commands or `quit` to exit the program.
 

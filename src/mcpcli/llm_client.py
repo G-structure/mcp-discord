@@ -14,15 +14,17 @@ load_dotenv()
 
 
 class LLMClient:
-    def __init__(self, provider="openai", model="gpt-4o-mini", api_key=None):
+    def __init__(self, provider="openai", model="gpt-4o-mini", api_key=None, base_url=None):
         # set the provider, model and api key
         self.provider = provider
         self.model = model
         self.api_key = api_key
+        self.base_url = base_url
 
         # ensure we have the api key for openai if set
         if provider == "openai":
             self.api_key = self.api_key or os.getenv("OPENAI_API_KEY")
+            self.base_url = self.base_url or os.getenv("OPENAI_BASE_URL")
             if not self.api_key:
                 raise ValueError("The OPENAI_API_KEY environment variable is not set.")
         # check anthropic api key
@@ -53,8 +55,12 @@ class LLMClient:
 
     def _openai_completion(self, messages: List[Dict], tools: List) -> Dict[str, Any]:
         """Handle OpenAI chat completions."""
-        # get the openai client
-        client = OpenAI(api_key=self.api_key)
+        # get the openai client with optional base_url
+        client_kwargs = {"api_key": self.api_key}
+        if self.base_url:
+            client_kwargs["base_url"] = self.base_url
+        
+        client = OpenAI(**client_kwargs)
 
         try:
             # make a request, passing in tools
